@@ -14,10 +14,10 @@
 ![Dispatch room](https://img.shields.io/badge/dispatch-routing_room-06b6d4)
 ![Dependency-aware](https://img.shields.io/badge/order-dependency_aware-f97316)
 ![Explicit merge gate](https://img.shields.io/badge/merge-explicit_only-ef4444)
-![Codex + Claude Code](https://img.shields.io/badge/works_with-Codex_%2B_Claude_Code-8b5cf6)
+![Codex + Claude Code + Opencode](https://img.shields.io/badge/works_with-Codex_%2B_Claude_Code_%2B_Opencode-8b5cf6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Conductor is a context hygiene and interactive branch orchestration skill for long-running AI work. The protocol is tool-agnostic; this repository includes a Codex-compatible skill folder, a Claude Code-native plugin adapter, and one-shot prompts for Codex or Claude Code.
+Conductor is a context hygiene and interactive branch orchestration skill for long-running AI work. The protocol is tool-agnostic; this repository includes a Codex-compatible skill folder, a Claude Code-native plugin adapter, an opencode-native plugin integration, and one-shot prompts for Codex, Claude Code, or opencode.
 
 Conductor treats a long project like an orchestra. You and the master session stay at the podium with the score: the goal, constraints, decisions, and shape of the whole piece. The dispatch room decides which parts should play now and which must wait. Each branch takes its own part, the explainer sidecar becomes the rehearsal room for questions and false starts, and only the passages worth keeping are written back into the score.
 
@@ -59,6 +59,15 @@ Even after workflows like Superpowers or grill-me, users may still not fully und
 ├── README.md
 ├── README.zh-CN.md
 ├── LICENSE
+├── .opencode/
+│   ├── skills/conductor/SKILL.md
+│   ├── plugins/conductor.js
+│   ├── agents/conductor-merge-verify.md
+│   └── commands/conductor/
+│       ├── init.md
+│       ├── branch.md
+│       ├── complete.md
+│       └── merge.md
 ├── claude-code/
 │   ├── .claude-plugin/plugin.json
 │   ├── commands/
@@ -75,7 +84,8 @@ Even after workflows like Superpowers or grill-me, users may still not fully und
 │   └── trellis-task-meta.json
 ├── prompts/
 │   ├── install-with-claude-code.md
-│   └── install-with-codex.md
+│   ├── install-with-codex.md
+│   └── install-with-opencode.md
 ├── scripts/
 │   └── install.sh
 └── skills/
@@ -121,12 +131,34 @@ claude --plugin-dir ./claude-code
 
 Then, inside a project, run `/cd-init` to make the current Claude Code session the Conductor master.
 
+### Opencode Plugin
+
+Opencode users can use the native integration under [`.opencode/`](.opencode/). It ports Conductor into opencode via auto-discovered skills, slash commands, enforcement plugins, and a merge-verify subagent — replicating the Claude Code hooks architecture using opencode's plugin system:
+
+| Conductor need | Opencode mechanism |
+| --- | --- |
+| Protocol rules | Skill at `.opencode/skills/conductor/SKILL.md` — auto-discovered |
+| Read-firewall, merge-gate, write-guard | Plugin at `.opencode/plugins/conductor.js` — `tool.execute.before` hook |
+| Registry → branch-map sync | Plugin — `tool.execute.after` hook |
+| Staleness nudge | Plugin — `experimental.session.compacting` hook |
+| Master→branch→merge loop | Slash commands: `/conductor/init`, `/conductor/branch`, `/conductor/complete`, `/conductor/merge` |
+| Merge verification | Subagent: `@conductor-merge-verify` |
+
+To install, copy the `.opencode/` directory from this repository into your project:
+
+```bash
+cp -R .opencode .
+```
+
+Then restart opencode for the plugin to load. Start a new opencode session and run `/conductor/init` to become the master.
+
 ## AI-Assisted Install
 
-You can also hand the installation to Codex or Claude Code with a one-shot prompt:
+You can also hand the installation to Codex, Claude Code, or opencode with a one-shot prompt:
 
 - [Install with Codex](prompts/install-with-codex.md)
 - [Install with Claude Code](prompts/install-with-claude-code.md)
+- [Install with Opencode](prompts/install-with-opencode.md)
 
 Paste the whole prompt into the target AI coding agent. The prompts already point to this repository.
 

@@ -14,10 +14,10 @@
 ![调度室](https://img.shields.io/badge/dispatch-routing_room-06b6d4)
 ![依赖顺序](https://img.shields.io/badge/order-dependency_aware-f97316)
 ![显式合并](https://img.shields.io/badge/merge-explicit_only-ef4444)
-![Codex + Claude Code](https://img.shields.io/badge/works_with-Codex_%2B_Claude_Code-8b5cf6)
+![Codex + Claude Code + Opencode](https://img.shields.io/badge/works_with-Codex_%2B_Claude_Code_%2B_Opencode-8b5cf6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Conductor 是一个用于长周期 AI 工作的上下文卫生和交互式分支编排 skill。它的协议本身不绑定工具；这个仓库提供了 Codex-compatible skill 文件夹、Claude Code-native plugin 适配层，也提供了给 Codex 或 Claude Code 的 one-shot 安装 prompt。
+Conductor 是一个用于长周期 AI 工作的上下文卫生和交互式分支编排 skill。它的协议本身不绑定工具；这个仓库提供了 Codex-compatible skill 文件夹、Claude Code-native plugin 适配层、opencode-native plugin 集成，也提供了给 Codex、Claude Code 或 opencode 的 one-shot 安装 prompt。
 
 Conductor 把一个长项目当作一支乐队来指挥。你和 master session 站在指挥台前，手里只保留总谱：目标、约束、决策和全局结构。dispatch room 决定哪些声部现在进场、哪些必须等待。每个分支负责自己的声部；explainer sidecar 像排练室，容纳追问、试错和临时理解；真正值得留下的片段，才会被整理后写回总谱。
 
@@ -59,6 +59,15 @@ Conductor 把一个长项目当作一支乐队来指挥。你和 master session 
 ├── README.md
 ├── README.zh-CN.md
 ├── LICENSE
+├── .opencode/
+│   ├── skills/conductor/SKILL.md
+│   ├── plugins/conductor.js
+│   ├── agents/conductor-merge-verify.md
+│   └── commands/conductor/
+│       ├── init.md
+│       ├── branch.md
+│       ├── complete.md
+│       └── merge.md
 ├── claude-code/
 │   ├── .claude-plugin/plugin.json
 │   ├── commands/
@@ -75,7 +84,8 @@ Conductor 把一个长项目当作一支乐队来指挥。你和 master session 
 │   └── trellis-task-meta.json
 ├── prompts/
 │   ├── install-with-claude-code.md
-│   └── install-with-codex.md
+│   ├── install-with-codex.md
+│   └── install-with-opencode.md
 ├── scripts/
 │   └── install.sh
 └── skills/
@@ -121,12 +131,34 @@ claude --plugin-dir ./claude-code
 
 然后在项目里运行 `/cd-init`，把当前 Claude Code session 设为 Conductor master。
 
+### Opencode Plugin
+
+Opencode 用户可以使用 [`.opencode/`](.opencode/) 里的原生集成。它通过自动发现的 skill、斜杠命令、强制执行插件和 merge 审核子 agent，把 Conductor 接入 opencode——用 opencode plugin 系统复刻了 Claude Code hooks 架构：
+
+| Conductor 能力 | Opencode 机制 |
+| --- | --- |
+| 协议规则 | Skill：`.opencode/skills/conductor/SKILL.md`，自动发现 |
+| 读防火墙、合并门禁、分支写保护 | Plugin：`.opencode/plugins/conductor.js`，`tool.execute.before` hook |
+| registry → branch-map 同步 | Plugin：`tool.execute.after` hook |
+| 压缩前过期提醒 | Plugin：`experimental.session.compacting` hook |
+| master→分支→合循环 | 斜杠命令：`/conductor/init`、`/conductor/branch`、`/conductor/complete`、`/conductor/merge` |
+| 合并审核 | 子 agent：`@conductor-merge-verify` |
+
+安装方式：把 `.opencode/` 目录从仓库复制到你的项目：
+
+```bash
+cp -R .opencode .
+```
+
+然后重启 opencode 以加载 plugin。重新开一个 opencode session，运行 `/conductor/init` 成为 master。
+
 ## 交给 AI 一键安装
 
-你也可以把安装交给 Codex 或 Claude Code：
+你也可以把安装交给 Codex、Claude Code 或 opencode：
 
 - [Install with Codex](prompts/install-with-codex.md)
 - [Install with Claude Code](prompts/install-with-claude-code.md)
+- [Install with Opencode](prompts/install-with-opencode.md)
 
 把对应 prompt 整段复制给目标 AI coding agent 即可。prompt 已经指向当前 GitHub 仓库。
 
