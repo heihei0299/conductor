@@ -59,8 +59,9 @@ Conductor 把一个长项目当作一支乐队来指挥。你和 master session 
 ├── README.md
 ├── README.zh-CN.md
 ├── LICENSE
-├── .opencode/
-│   ├── skills/conductor/SKILL.md
+├── opencode/
+│   ├── README.md
+│   ├── skills/conductor.md
 │   ├── plugins/conductor.js
 │   ├── agents/conductor-merge-verify.md
 │   └── commands/conductor/
@@ -133,24 +134,29 @@ claude --plugin-dir ./claude-code
 
 ### Opencode Plugin
 
-Opencode 用户可以使用 [`.opencode/`](.opencode/) 里的原生集成。它通过自动发现的 skill、斜杠命令、强制执行插件和 merge 审核子 agent，把 Conductor 接入 opencode——用 opencode plugin 系统复刻了 Claude Code hooks 架构：
+Opencode 用户可以使用 [`opencode/`](opencode/) 里的原生集成。它通过自动发现的 skill、斜杠命令、强制执行插件和 merge 审核子 agent，把 Conductor 接入 opencode——用 opencode plugin 系统复刻了 Claude Code hooks 架构：
 
 | Conductor 能力 | Opencode 机制 |
 | --- | --- |
-| 协议规则 | Skill：`.opencode/skills/conductor/SKILL.md`，自动发现 |
-| 读防火墙、合并门禁、分支写保护 | Plugin：`.opencode/plugins/conductor.js`，`tool.execute.before` hook |
+| 协议规则 | Skill：`opencode/skills/conductor.md`，自动发现 |
+| 读防火墙、合并门禁、分支写保护 | Plugin：`opencode/plugins/conductor.js`，`tool.execute.before` hook |
 | registry → branch-map 同步 | Plugin：`tool.execute.after` hook |
 | 压缩前过期提醒 | Plugin：`experimental.session.compacting` hook |
 | master→分支→合循环 | 斜杠命令：`/conductor/init`、`/conductor/branch`、`/conductor/complete`、`/conductor/merge` |
 | 合并审核 | 子 agent：`@conductor-merge-verify` |
 
-安装方式：把 `.opencode/` 目录从仓库复制到你的项目：
+安装方式：把集成文件从仓库复制到你的项目 `.opencode/` 目录：
 
 ```bash
-cp -R .opencode .
+cp -R opencode/skills .opencode/skills/conductor
+cp opencode/agents/conductor-merge-verify.md .opencode/agents/
+cp -R opencode/commands/conductor .opencode/commands/
+cp opencode/plugins/conductor.js .opencode/plugins/
 ```
 
 然后重启 opencode 以加载 plugin。重新开一个 opencode session，运行 `/conductor/init` 成为 master。
+
+详见 [`opencode/README.md`](opencode/README.md)。
 
 ## 交给 AI 一键安装
 

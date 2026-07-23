@@ -1,12 +1,32 @@
 # Design: opencode Conductor integration
 
-## Architecture
+## Distribution Layout (repo root)
 
 ```
-opencode session
+opencode/                          ← distribution directory (like claude-code/)
+├── README.md                      ← opencode-specific docs
+├── skills/conductor.md            ← skill (opencode expects .md extension)
+├── plugins/conductor.js           ← enforcement hooks
+├── agents/conductor-merge-verify.md  ← merge verification subagent
+└── commands/conductor/            ← slash commands
+    ├── init.md
+    ├── branch.md
+    ├── complete.md
+    └── merge.md
+```
+
+Users copy these files into their own project's `.opencode/` directory:
+- `opencode/skills/conductor.md` → `.opencode/skills/conductor/SKILL.md`
+- `opencode/plugins/conductor.js` → `.opencode/plugins/conductor.js`
+- `opencode/agents/conductor-merge-verify.md` → `.opencode/agents/conductor-merge-verify.md`
+- `opencode/commands/conductor/*` → `.opencode/commands/conductor/*`
+
+## Runtime Architecture (in the user's project)
+
+```
+user project/.opencode/
 │
-├─ skill (auto-discovered)
-│   └─ .opencode/skills/conductor/SKILL.md
+├─ skills/conductor/SKILL.md       ← protocol rules (auto-discovered)
 │      → protocol rules for AI routing judgment
 │
 ├─ plugin (auto-loaded)

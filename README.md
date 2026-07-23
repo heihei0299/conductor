@@ -59,8 +59,9 @@ Even after workflows like Superpowers or grill-me, users may still not fully und
 ├── README.md
 ├── README.zh-CN.md
 ├── LICENSE
-├── .opencode/
-│   ├── skills/conductor/SKILL.md
+├── opencode/
+│   ├── README.md
+│   ├── skills/conductor.md
 │   ├── plugins/conductor.js
 │   ├── agents/conductor-merge-verify.md
 │   └── commands/conductor/
@@ -133,24 +134,29 @@ Then, inside a project, run `/cd-init` to make the current Claude Code session t
 
 ### Opencode Plugin
 
-Opencode users can use the native integration under [`.opencode/`](.opencode/). It ports Conductor into opencode via auto-discovered skills, slash commands, enforcement plugins, and a merge-verify subagent — replicating the Claude Code hooks architecture using opencode's plugin system:
+Opencode users can use the native integration under [`opencode/`](opencode/). It ports Conductor into opencode via auto-discovered skills, slash commands, enforcement plugins, and a merge-verify subagent — replicating the Claude Code hooks architecture using opencode's plugin system:
 
 | Conductor need | Opencode mechanism |
 | --- | --- |
-| Protocol rules | Skill at `.opencode/skills/conductor/SKILL.md` — auto-discovered |
-| Read-firewall, merge-gate, write-guard | Plugin at `.opencode/plugins/conductor.js` — `tool.execute.before` hook |
+| Protocol rules | Skill at `opencode/skills/conductor.md` — auto-discovered |
+| Read-firewall, merge-gate, write-guard | Plugin at `opencode/plugins/conductor.js` — `tool.execute.before` hook |
 | Registry → branch-map sync | Plugin — `tool.execute.after` hook |
 | Staleness nudge | Plugin — `experimental.session.compacting` hook |
 | Master→branch→merge loop | Slash commands: `/conductor/init`, `/conductor/branch`, `/conductor/complete`, `/conductor/merge` |
 | Merge verification | Subagent: `@conductor-merge-verify` |
 
-To install, copy the `.opencode/` directory from this repository into your project:
+To install, copy the integration files from the repository into your project's `.opencode/` directory:
 
 ```bash
-cp -R .opencode .
+cp -R opencode/skills .opencode/skills/conductor
+cp opencode/agents/conductor-merge-verify.md .opencode/agents/
+cp -R opencode/commands/conductor .opencode/commands/
+cp opencode/plugins/conductor.js .opencode/plugins/
 ```
 
 Then restart opencode for the plugin to load. Start a new opencode session and run `/conductor/init` to become the master.
+
+See [`opencode/README.md`](opencode/README.md) for details.
 
 ## AI-Assisted Install
 
